@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resource-demo
+  namespace: k8s-resource-lab
+  labels:
+    app: resource-demo
+    scenario: memory-oom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resource-demo
+  template:
+    metadata:
+      labels:
+        app: resource-demo
+        scenario: memory-oom
+    spec:
+      containers:
+        - name: web-app
+          image: k8s-resource-demo:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SCENARIO_NAME
+              value: "Scenario 3: Memory Constrained (OOMKilled & Restarts)"
+            - name: QOS_CLASS
+              value: "Burstable"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: CPU_REQUEST
+              valueFrom:
+                resourceFieldRef:
+                  containerName: web-app
+                  resource: requests.cpu
+            - name: CPU_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  containerName: web-app
+                  resource: limits.cpu
+            - name: MEM_REQUEST
+              valueFrom:
+                resourceFieldRef:
+                  containerName: web-app
+                  resource: requests.memory
+            - name: MEM_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  containerName: web-app
+                  resource: limits.memory
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "300m"
+              memory: "90Mi"     # Heavily constrained: 120MB allocation triggers OOMKilled
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5

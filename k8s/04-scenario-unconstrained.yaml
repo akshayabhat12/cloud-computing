@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resource-demo
+  namespace: k8s-resource-lab
+  labels:
+    app: resource-demo
+    scenario: unconstrained
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resource-demo
+  template:
+    metadata:
+      labels:
+        app: resource-demo
+        scenario: unconstrained
+    spec:
+      containers:
+        - name: web-app
+          image: k8s-resource-demo:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SCENARIO_NAME
+              value: "Scenario 4: Unconstrained (No Requests or Limits)"
+            - name: QOS_CLASS
+              value: "BestEffort"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: CPU_REQUEST
+              value: "None (Unconstrained)"
+            - name: CPU_LIMIT
+              value: "None (Unconstrained)"
+            - name: MEM_REQUEST
+              value: "None (Unconstrained)"
+            - name: MEM_LIMIT
+              value: "None (Unconstrained)"
+          # Note: No 'resources' block defined -> Automatically assigns QoS class 'BestEffort'
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5

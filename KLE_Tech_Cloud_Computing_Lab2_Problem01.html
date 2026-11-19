@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kubernetes Resource Allocation and Optimization - Lab Evaluation 2</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 18mm 15mm 18mm 15mm;
+            @bottom-right { content: counter(page); }
+        }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: #1e293b;
+            background: #ffffff;
+            font-size: 10.5pt;
+            margin: 0;
+            padding: 0;
+        }
+        .header-box {
+            border-left: 6px solid #b91c1c;
+            padding: 14px 18px;
+            background: #f8fafc;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .uni-badge {
+            font-size: 8.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #b91c1c;
+            letter-spacing: 0.1em;
+            display: block;
+            margin-bottom: 4px;
+        }
+        h1 {
+            font-size: 18pt;
+            color: #0f172a;
+            margin: 4px 0 6px 0;
+            line-height: 1.2;
+        }
+        .meta-sub {
+            color: #64748b;
+            font-size: 9.5pt;
+            font-weight: 500;
+        }
+        h2 {
+            font-size: 13pt;
+            color: #1e3a8a;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding-bottom: 4px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            page-break-after: avoid;
+        }
+        h3 {
+            font-size: 11pt;
+            color: #0f172a;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            page-break-after: avoid;
+        }
+        p { margin: 0 0 8px 0; }
+        .analogy-card {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 5px solid #16a34a;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 12px 0;
+        }
+        .analogy-card h4 { color: #15803d; margin: 0 0 4px 0; font-size: 10.5pt; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 9pt;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 7px 9px;
+            text-align: left;
+        }
+        th { background-color: #f1f5f9; color: #0f172a; font-weight: 600; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        code {
+            font-family: Consolas, monospace;
+            background: #f1f5f9;
+            color: #0f172a;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 8.5pt;
+        }
+        pre {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: Consolas, monospace;
+            font-size: 8pt;
+            line-height: 1.35;
+            margin: 8px 0;
+            page-break-inside: avoid;
+        }
+        .viva-q { font-weight: 700; color: #1e3a8a; margin-top: 12px; margin-bottom: 2px; }
+        .viva-a { margin-bottom: 10px; padding-left: 8px; border-left: 2px solid #cbd5e1; }
+        .page-break { page-break-before: always; }
+        .pill {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 7.5pt;
+            font-weight: 700;
+        }
+        .pill-green { background: #dcfce7; color: #15803d; }
+        .pill-amber { background: #fef3c7; color: #b45309; }
+        .pill-red { background: #fee2e2; color: #b91c1c; }
+    </style>
+</head>
+<body>
+
+    <div class="header-box">
+        <span class="uni-badge">KLE Technological University · Cloud Computing Lab Evaluation 2</span>
+        <h1>Kubernetes Resource Allocation, Optimization & E-Commerce Telemetry</h1>
+        <div class="meta-sub">Problem 01: Microservices Deployment, E-Commerce Workloads, CPU Throttling, and Cluster Monitoring</div>
+    </div>
+
+    <h2>1. Project Overview & Architecture</h2>
+    <p>
+        In cloud computing environments, applications must coexist on shared physical nodes without causing resource starvation or node crashes. This project implements a full-featured <strong>E-Commerce Microservice ("CloudCommerce")</strong> deployed on Kubernetes, integrated with a <strong>Real-Time Cluster Monitoring Dashboard</strong>.
+    </p>
+
+    <div class="analogy-card">
+        <h4>💡 The Core Problem Solved</h4>
+        <p>
+            When traffic surges during a "Flash Sale", how does Kubernetes protect the node? 
+            <strong>CPU Requests</strong> guarantee placement reservations, while <strong>CPU Limits</strong> trigger Linux CFS quota throttling (degrading response time from ~35ms to ~390ms without crashing). In contrast, <strong>Memory Limits</strong> enforce a hard ceiling: any memory spike beyond the limit triggers the Linux kernel OOM Killer (Exit Code 137), forcing container restarts.
+        </p>
+    </div>
+
+    <h2>2. E-Commerce Microservice Features</h2>
+    <ul>
+        <li><strong>Product Catalog</strong>: Dynamic listing with search, category filtering (Servers, AI Accelerators, Gear, Merch), and live stock counts.</li>
+        <li><strong>Shopping Cart</strong>: Real-time item additions, quantity updates, subtotal, and tax calculations.</li>
+        <li><strong>Checkout Flow</strong>: Simulated payment & order processing, unique order ID generation (<code>ORD-XXXX</code>), inventory reduction, and order history tracking.</li>
+        <li><strong>Built-in Cluster Monitoring Dashboard</strong>: Tab directly in the web app showing live CPU%, RAM RSS (MB), Downward API Pod/Node metadata, and request latency.</li>
+        <li><strong>Flash Sale Traffic Generator</strong>: Injects high-concurrency synthetic buyer traffic (20 to 50 concurrent shoppers) to push cluster resource utilization in real time!</li>
+        <li><strong>Prometheus Exporter</strong>: Standard <code>/metrics</code> endpoint exposing request counts, order totals, and process memory for external Prometheus scraping.</li>
+    </ul>
+
+    <h2>3. Experimental Comparison Table</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Scenario</th>
+                <th>CPU (Req / Lim)</th>
+                <th>RAM (Req / Lim)</th>
+                <th>QoS Class</th>
+                <th>Avg Response</th>
+                <th>Throughput</th>
+                <th>Restarts</th>
+                <th>Cluster Behavior</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>1. Optimal</strong></td>
+                <td>100m / 400m</td>
+                <td>128Mi / 256Mi</td>
+                <td><span class="pill pill-green">Burstable</span></td>
+                <td><strong>34.8 ms</strong></td>
+                <td>72.4 req/s</td>
+                <td><strong>0</strong></td>
+                <td>Smooth execution, no throttling</td>
+            </tr>
+            <tr>
+                <td><strong>2. CPU Choke</strong></td>
+                <td>50m / <strong>75m</strong></td>
+                <td>128Mi / 256Mi</td>
+                <td><span class="pill pill-amber">Burstable</span></td>
+                <td><strong>392.6 ms</strong></td>
+                <td>8.1 req/s</td>
+                <td><strong>0</strong></td>
+                <td>CFS Quota Throttled (11x slower latency)</td>
+            </tr>
+            <tr>
+                <td><strong>3. Memory OOM</strong></td>
+                <td>100m / 300m</td>
+                <td>64Mi / <strong>90Mi</strong></td>
+                <td><span class="pill pill-red">Burstable</span></td>
+                <td>36.2 ms</td>
+                <td>69.8 req/s</td>
+                <td><strong>1+ (OOM)</strong></td>
+                <td><strong>OOMKilled (Exit Code 137)</strong></td>
+            </tr>
+            <tr>
+                <td><strong>4. Unconstrained</strong></td>
+                <td>None / None</td>
+                <td>None / None</td>
+                <td><span class="pill pill-amber">BestEffort</span></td>
+                <td>31.5 ms</td>
+                <td>78.2 req/s</td>
+                <td>0</td>
+                <td>First to be evicted under node pressure</td>
+            </tr>
+            <tr>
+                <td><strong>5. Guaranteed</strong></td>
+                <td>250m / 250m</td>
+                <td>256Mi / 256Mi</td>
+                <td><span class="pill pill-green">Guaranteed</span></td>
+                <td>32.1 ms</td>
+                <td>76.5 req/s</td>
+                <td>0</td>
+                <td>Highest eviction protection</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>4. Step-by-Step Execution Guide</h2>
+
+    <h3>Step 1: Start Cluster (Docker Desktop / Kind / Minikube)</h3>
+    <pre># Option A: Docker Desktop -> Settings -> Kubernetes -> Enable Kubernetes -> Apply
+# Option B (Kind): kind create cluster --name k8s-ecommerce
+# Option C (Minikube): minikube start
+kubectl get nodes</pre>
+
+    <h3>Step 2: Deploy E-Commerce App & Monitoring</h3>
+    <pre># Build container and apply Kubernetes manifests:
+.\scripts\deploy_ecommerce.ps1
+
+# Forward service port to access in browser:
+kubectl port-forward svc/ecommerce-svc 8080:8080 -n k8s-resource-lab</pre>
+
+    <h3>Step 3: Open Browser & Test</h3>
+    <ul>
+        <li>Open <strong><code>http://localhost:8080</code></strong></li>
+        <li><strong>Storefront Tab</strong>: Add products to cart and complete checkout.</li>
+        <li><strong>Cluster Monitoring Tab</strong>: Observe live CPU%, RAM (MB), and Pod Name.</li>
+        <li><strong>Flash Sale Tab</strong>: Click <em>"Simulate 50 Concurrent Shoppers"</em> and watch cluster resource usage climb!</li>
+    </ul>
+
+    <h2>5. Top Viva Voce Questions & Answers</h2>
+    <div class="viva-q">Q1: What is the difference between CPU Requests and CPU Limits?</div>
+    <div class="viva-a"><strong>Answer:</strong> <em>Requests</em> are evaluated by the Kubernetes Scheduler to determine node placement. <em>Limits</em> are enforced at runtime by the Linux kernel cgroups to cap maximum resource consumption.</div>
+
+    <div class="viva-q">Q2: Why does an application get slower under CPU limits instead of crashing?</div>
+    <div class="viva-a"><strong>Answer:</strong> CPU is a <em>compressible resource</em>. The Linux Completely Fair Scheduler (CFS) enforces a quota on CPU execution time slices. When the quota is reached, execution is paused until the next CFS period, increasing latency without terminating the pod.</div>
+
+    <div class="viva-q">Q3: Why does exceeding memory limits trigger OOMKilled with Exit Code 137?</div>
+    <div class="viva-a"><strong>Answer:</strong> Memory is an <em>incompressible resource</em>. When physical RAM limits are exceeded, the Linux kernel invokes the OOM Killer and sends <code>SIGKILL</code> (Signal 9). Exit codes for signals are calculated as $128 + 9 = 137$.</div>
+
+    <div class="viva-q">Q4: How does our monitoring dashboard read pod limits without cluster admin rights?</div>
+    <div class="viva-a"><strong>Answer:</strong> Using the Kubernetes <strong>Downward API</strong> (`resourceFieldRef`), which dynamically injects container requests and limits as environment variables directly inside the running pod.</div>
+
+    <div class="viva-q">Q5: In what sequence does Kubelet evict pods during node memory pressure?</div>
+    <div class="viva-a"><strong>Answer:</strong> Kubelet evicts <code>BestEffort</code> pods first, followed by <code>Burstable</code> pods that exceed their requested memory. <code>Guaranteed</code> pods are protected and evicted last.</div>
+
+    <hr style="border: 0; border-top: 1px solid #cbd5e1; margin-top: 20px;">
+    <p style="text-align: center; color: #64748b; font-size: 8pt;">
+        KLE Technological University · Department of Computer Science & Engineering · Cloud Computing Laboratory 2
+    </p>
+
+</body>
+</html>
